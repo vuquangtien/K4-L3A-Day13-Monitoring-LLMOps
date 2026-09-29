@@ -1,0 +1,14 @@
+CP1 PII-redaction evidence — 2026-09-29
+
+Input samples in the workload include:
+- email: student@vinuni.edu.vn
+- Vietnamese phone: 0987654321
+- payment card: 4111 1111 1111 1111
+
+The persisted structured logs contain the safe replacements:
+- [REDACTED_EMAIL]
+- [REDACTED_PHONE_VN]
+- [REDACTED_CREDIT_CARD]
+
+Unit coverage also checks the CCCD sample 001234567890 is replaced by [REDACTED_CCCD].
+The independent log validator reported: Potential PII leaks detected: 0.

@@ -1,0 +1,30 @@
+CP1 structured-log excerpt — 2026-09-29
+
+request_received
+{
+  "event": "request_received",
+  "ts": "2026-09-29T08:07:48.034704Z",
+  "level": "info",
+  "service": "api",
+  "correlation_id": "req-8e6ecce9",
+  "user_id_hash": "2055254ee30a",
+  "session_id": "s01",
+  "feature": "qa",
+  "model": "claude-sonnet-4-5",
+  "env": "dev",
+  "payload": {"message_preview": "What is your refund policy? My email is [REDACTED_EMAIL]"}
+}
+
+response_sent
+{
+  "event": "response_sent",
+  "correlation_id": "req-8e6ecce9",
+  "latency_ms": 150,
+  "ttft_ms": 50,
+  "tokens_in": 36,
+  "tokens_out": 106,
+  "cost_usd": 0.001698,
+  "quality_score": 0.9,
+  "tool_name": "retrieval",
+  "tool_success": true
+}

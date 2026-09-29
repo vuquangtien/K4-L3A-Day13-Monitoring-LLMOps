@@ -4,13 +4,13 @@
 
 ## 1. Thông tin học viên
 
-- **Họ và tên:**
-- **MSSV:**
+- **Họ và tên:** Vũ Quang Tiến
+- **MSSV:** 2A202602872
 - **Lớp:** K4-L3A
-- **Repository URL:**
+- **Repository URL:** https://github.com/vuquangtien/K4-L3A-Day13-Monitoring-LLMOps
 - **Commit SHA cuối:**
 - **Challenge ID:**
-- **Tên project Langfuse cá nhân:** `day13-k4-l3a-<MSSV>`
+- **Tên project Langfuse cá nhân:** `day13-k4-l3a-2A202602872`
 
 ## 2. Evidence index
 
@@ -18,11 +18,11 @@
 
 | Evidence | Đường dẫn |
 |---|---|
-| Pytest cuối | `evidence/01-pytest.png` |
-| Log validator | `evidence/02-log-validator.png` |
+| Pytest cuối | `evidence/01-pytest.txt` |
+| Log validator | `evidence/02-log-validator.txt` |
 | Dashboard validator | `evidence/03-dashboard-validator.png` |
-| Structured log | `evidence/04-structured-log.png` |
-| PII redaction | `evidence/05-pii-redaction.png` |
+| Structured log | `evidence/04-structured-log.txt` |
+| PII redaction | `evidence/05-pii-redaction.txt` |
 | Trace list | `evidence/06-trace-list.png` |
 | Trace waterfall | `evidence/07-trace-waterfall.png` |
 | Trace metadata | `evidence/08-trace-metadata.png` |
@@ -37,20 +37,20 @@
 
 | Nội dung | Baseline | Kết quả cuối | Nhận xét |
 |---|---|---|---|
-| `validate_logs.py` | | | |
-| `validate_dashboard.py` | | | |
-| `pytest` | | | |
+| `validate_logs.py` | 30/100 | 100/100 (CP1) | Đã có correlation ID, request context và PII redaction; xem `evidence/02-log-validator.txt`. |
+| `validate_dashboard.py` | 6/6 panel hợp lệ | Chưa chạy | Dashboard contract của starter đã hợp lệ. |
+| `pytest` | 22 passed | 23 passed (CP1) | Bổ sung kiểm tra CCCD và thẻ thanh toán. |
 | Số traces hợp lệ | | | |
-| Số PII leak | | | |
+| Số PII leak | 0 | 0 (CP1) | `validate_logs.py` không phát hiện email, SĐT VN, CCCD hoặc thẻ thô. |
 | Latency P95 / TTFT P95 | | | |
 | Retrieval success rate | | | |
 
 ## 4. Logging và PII
 
-- **Cách tạo/nhận và truyền correlation ID:**
-- **Các metadata được ghi vào structured log:**
-- **Cách bảo đảm PII được scrub trước khi ghi:**
-- **Cách kiểm chứng kết quả:**
+- **Cách tạo/nhận và truyền correlation ID:** Middleware xóa contextvars ở đầu request, dùng header `x-request-id` nếu có hoặc sinh `req-<8-hex>`, bind vào structlog context và trả lại qua `x-request-id`; latency của middleware được trả qua `x-response-time-ms`.
+- **Các metadata được ghi vào structured log:** `user_id_hash` (SHA-256 rút gọn), `session_id`, `feature`, `model`, `env`, cùng event, timestamp và `correlation_id`.
+- **Cách bảo đảm PII được scrub trước khi ghi:** `scrub_event` duyệt toàn bộ event payload và redact string trước cả JSON renderer và JSONL file processor. Rules xử lý email, số điện thoại Việt Nam, CCCD và thẻ thanh toán.
+- **Cách kiểm chứng kết quả:** Workload 10 request tạo 10 correlation ID khác nhau; `validate_logs.py` đạt 100/100, không phát hiện PII thô. Xem `evidence/02-log-validator.txt`, `evidence/04-structured-log.txt` và `evidence/05-pii-redaction.txt`.
 
 ## 5. Tracing và prompt versioning
 

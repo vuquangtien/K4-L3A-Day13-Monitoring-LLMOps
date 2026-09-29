@@ -1,0 +1,3 @@
+CP1 test run — 2026-09-29
+Command: .venv/bin/python -m pytest -q
+Result: 23 passed in 1.30s
