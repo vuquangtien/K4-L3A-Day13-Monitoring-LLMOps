@@ -7,7 +7,8 @@ primary_slo:
     total_event: 'event == "request_received"'
   target_percent: 99.5
   error_budget_percent: 0.5
-  note: Học viên phải giải thích hoặc điều chỉnh ngưỡng bằng baseline của mình.
+  error_budget: 201.6 minutes per 28d window
+  note: "99.5% requests must complete successfully within 3000 ms. The remaining 0.5% of a 28-day window is 201.6 minutes of error budget; errors and slow requests consume it. The 3000 ms threshold matches the latency dashboard SLO line."
 guardrails:
   error_rate_pct_max: 2
   daily_cost_usd_max: 2.5
