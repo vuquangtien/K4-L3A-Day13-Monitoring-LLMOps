@@ -73,14 +73,14 @@
 
 ## 7. Điều tra challenge
 
-- **Challenge ID:**
-- **Khoảng thời gian điều tra:**
-- **Triệu chứng từ metrics:**
-- **Log line và correlation ID liên quan:**
-- **Trace ID và span gây ảnh hưởng:**
-- **Root cause:**
-- **Fix action:**
-- **Preventive measure:**
+- **Challenge ID:** `day13-k4-l3a-monitoring-llmops-v1`.
+- **Khoảng thời gian điều tra:** 2026-09-29 10:10:50–10:11:05 UTC (official challenge workload, 5 query).
+- **Triệu chứng từ metrics:** P50/P95/P99 latency lần lượt là 2653/3633/3633 ms, vượt ngưỡng SLO P95 3000 ms; TTFT P95 vẫn là 50 ms. Xem `evidence/12-incident-metric.png`.
+- **Log line và correlation ID liên quan:** `response_sent` lúc `2026-09-29T10:10:59.776526Z`, `correlation_id=req-e6066365`, `latency_ms=2653`, `ttft_ms=50`, `tool_name=retrieval`, `tool_success=true`. Xem `evidence/13-incident-log.png`.
+- **Trace ID và span gây ảnh hưởng:** Trace `37b6646c22ff7f61c2a4966584e28e6a`; root `lab-agent-run` 2654 ms, retriever span `8785698beb66e905` 2500 ms, generation span `8fd1d8437eef1de5` 152 ms. Xem `evidence/14-incident-trace.png`.
+- **Root cause:** Official scenario `rag_slow` làm retrieval chậm 2.5 giây, gây tail latency cao; TTFT và generation không phải bottleneck.
+- **Fix action:** Disable scenario sau điều tra; trong hệ thống thật cần kiểm tra dependency retrieval/vector store, đặt timeout và áp dụng cache/degraded fallback.
+- **Preventive measure:** Giữ alert P95 latency và retrieval-success, bổ sung timeout/retry có kiểm soát, cache retrieval và theo dõi retriever span qua correlation ID.
 
 ## 8. Giải thích và tự đánh giá
 
