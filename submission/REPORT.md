@@ -7,9 +7,9 @@
 - **Họ và tên:** Vũ Quang Tiến
 - **MSSV:** 2A202602872
 - **Lớp:** K4-L3A
-- **Repository URL:** https://github.com/vuquangtien/K4-L3A-Day13-Monitoring-LLMOps
+- **Repository URL:** https://github.com/vuquangtien/K4-L3-DAY13-VuQuangTien-2A202602872-Monitoring-LLMOps
 - **Commit SHA cuối:**
-- **Challenge ID:**
+- **Challenge ID:** `day13-k4-l3a-monitoring-llmops-v1`
 - **Tên project Langfuse cá nhân:** `day13-k4-l3a-2A202602872`
 
 ## 2. Evidence index
@@ -28,7 +28,7 @@
 | Trace metadata | `evidence/08-trace-metadata.png` |
 | Prompt versions | `evidence/09-prompt-versions.png` |
 | Prompt rollback | `evidence/10-prompt-rollback.png` |
-| Dashboard runtime | `evidence/11-dashboard-overview.html` |
+| Dashboard runtime | `evidence/11-dashboard-overview.png` |
 | Incident metric | `evidence/12-incident-metric.png` |
 | Incident log | `evidence/13-incident-log.png` |
 | Incident trace | `evidence/14-incident-trace.png` |
@@ -37,13 +37,13 @@
 
 | Nội dung | Baseline | Kết quả cuối | Nhận xét |
 |---|---|---|---|
-| `validate_logs.py` | 30/100 | 100/100 (CP1) | Đã có correlation ID, request context và PII redaction; xem `evidence/02-log-validator.txt`. |
-| `validate_dashboard.py` | 6/6 panel hợp lệ | 6/6 panel hợp lệ (CP2) | Dashboard runtime gồm 6 panel được render từ `data/logs.jsonl`; xem `evidence/11-dashboard-overview.html`. |
-| `pytest` | 22 passed | 23 passed (CP1) | Bổ sung kiểm tra CCCD và thẻ thanh toán. |
+| `validate_logs.py` | 30/100 | 100/100 (CP4) | 13 official log records, 7 correlation IDs, không PII leak; xem `evidence/02-log-validator.txt`. |
+| `validate_dashboard.py` | 6/6 panel hợp lệ | 6/6 panel hợp lệ (CP4) | Dashboard runtime gồm 6 panel từ `data/logs.jsonl`; xem `evidence/11-dashboard-overview.png`. |
+| `pytest` | 22 passed | 23 passed (CP4) | Bao gồm coverage email, SĐT VN, CCCD và thẻ thanh toán. |
 | Số traces hợp lệ | 0 | Ít nhất 16 root traces (CP2) | Evidence `06-trace-list.png` cho thấy 16 root traces, mỗi trace có agent/retriever/generation observations. |
 | Số PII leak | 0 | 0 (CP1) | `validate_logs.py` không phát hiện email, SĐT VN, CCCD hoặc thẻ thô. |
-| Latency P95 / TTFT P95 | 151 ms / 50 ms (CP2 workload) | Chưa chạy | 20 response trong cửa sổ dashboard hiện tại. |
-| Retrieval success rate | 100% (CP2 workload) | Chưa chạy | 20 retrieval thành công trong cửa sổ dashboard hiện tại. |
+| Latency P95 / TTFT P95 | 151 ms / 50 ms (CP2 workload) | 3633 ms / 50 ms (official CP3) | Incident xác định retrieval là bottleneck. |
+| Retrieval success rate | 100% (CP2 workload) | 100% (official CP3) | Retrieval thành công nhưng phản hồi chậm. |
 
 ## 4. Logging và PII
 
@@ -66,7 +66,7 @@
 
 ## 6. Dashboard, SLO và alerts
 
-- **Dashboard và sáu panel:** `scripts/render_dashboard.py` render đúng sáu panel từ `data/logs.jsonl`: latency/TTFT, traffic, errors/retrieval success, cost, tokens và quality. Snapshot CP2 có P95 latency 151 ms, TTFT P95 50 ms, error rate 0%, retrieval success 100%, total cost $0.037368 và quality mean 0.88.
+- **Dashboard và sáu panel:** `scripts/render_dashboard.py` render đúng sáu panel từ `data/logs.jsonl`: latency/TTFT, traffic, errors/retrieval success, cost, tokens và quality. Snapshot official CP3 có P95 latency 3633 ms, TTFT P95 50 ms, error rate 0%, retrieval success 100%, total cost $0.009450 và quality mean 0.84.
 - **SLO và lý do chọn:** `fast_successful_requests` đặt mục tiêu 99.5% request hoàn thành trong 3000 ms trên cửa sổ 28 ngày, cùng ngưỡng P95 trên dashboard để theo dõi tail latency nhìn thấy được.
 - **Cách tính error budget:** 0.5% × 28 × 24 × 60 = 201.6 phút. Request lỗi hoặc response vượt 3000 ms tiêu thụ budget.
 - **Ba alert và runbook tương ứng:** `high_request_error_rate` (critical, >2% trong 5 phút), `latency_slo_breach` (warning, P95 >3000 ms trong 10 phút), và `retrieval_success_degradation` (warning, <90% trong 5 phút); xem `config/alert_rules.yaml` và `docs/alerts.md`.
@@ -84,20 +84,20 @@
 
 ## 8. Giải thích và tự đánh giá
 
-- **Một quyết định kỹ thuật quan trọng và lý do:**
-- **Một lỗi/blocker đã gặp:**
-- **Cách tìm nguyên nhân và xử lý:**
-- **Cách hiểu luồng Metrics → Logs → Traces:**
-- **Vai trò của prompt version, token/cost, SLO hoặc rollback trong vận hành LLM:**
-- **Điều quan trọng nhất đã học:**
-- **Hạn chế hoặc phần chưa hoàn thành, nếu có:**
+- **Một quyết định kỹ thuật quan trọng và lý do:** Scrub toàn bộ event trước JSON renderer/file writer và chỉ gửi preview đã redact lên Langfuse. Quyết định này bảo vệ PII ở cả log lẫn trace mà vẫn giữ đủ metadata để điều tra.
+- **Một lỗi/blocker đã gặp:** Ban đầu Langfuse trả 401 do key/host chưa khớp; sau đó prompt `day13-chat` chưa tồn tại và một lần fetch prompt bị SSL timeout. Tôi kiểm tra health/tracing, tạo prompt đúng tên/label, restart app và retry để phân biệt lỗi mạng tạm thời với lỗi cấu hình.
+- **Cách tìm nguyên nhân và xử lý:** Từ panel latency xác định P95 vượt 3000 ms, lọc structured log lấy `req-e6066365`, sau đó mở trace cùng correlation ID. Retriever 2.5 s trong khi generation 0.15 s, nên khoanh vùng retrieval và tắt incident sau khi thu evidence.
+- **Cách hiểu luồng Metrics → Logs → Traces:** Metrics cho biết triệu chứng và time window; logs đưa ra request cụ thể qua correlation ID; trace tách request đó thành các span để xác định chính xác bước chậm/lỗi và root cause.
+- **Vai trò của prompt version, token/cost, SLO hoặc rollback trong vận hành LLM:** Prompt label cho phép thử v2 bằng `candidate`, promote `production` và rollback về v1 mà không đổi code. Token/cost cảnh báo chi phí tăng; SLO/error budget biến latency/error thành ngưỡng vận hành có thể alert và ưu tiên xử lý.
+- **Điều quan trọng nhất đã học:** Observability chỉ có giá trị khi ba lớp tín hiệu liên kết được qua correlation ID và evidence của cùng một request, không chỉ là các dashboard hay trace rời rạc.
+- **Hạn chế hoặc phần chưa hoàn thành, nếu có:** Dashboard là HTML snapshot cục bộ từ JSONL, chưa có backend dashboard tự refresh; FakeLLM/fake retrieval giúp tái hiện incident nhưng không thay thế latency/cost của provider thật.
 
 ## 9. Checklist trước khi nộp
 
 - [ ] Kết quả và evidence thuộc commit SHA cuối.
-- [ ] Tất cả ảnh/output mở được bằng đường dẫn tương đối.
-- [ ] Incident evidence nối đúng metric → log → trace.
-- [ ] Trace/prompt evidence thuộc project Langfuse cá nhân và ảnh không lộ key/secret.
-- [ ] Repository chạy lại được theo README.
-- [ ] Không có secret, API key, PII thô hoặc evidence của người khác/lớp khác.
+- [x] Tất cả ảnh/output mở được bằng đường dẫn tương đối.
+- [x] Incident evidence nối đúng metric → log → trace.
+- [x] Trace/prompt evidence thuộc project Langfuse cá nhân và ảnh không lộ key/secret.
+- [x] Repository chạy lại được theo README.
+- [x] Không có secret, API key, PII thô hoặc evidence của người khác/lớp khác.
 - [ ] URL repo và commit SHA cuối đã được nộp trên LMS/Codelabs.
